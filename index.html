@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jhon Games — Jogos baratos</title>
+  <link rel="stylesheet" href="style.css">
+
+<style>
+#cartModal{
+  position:fixed; inset:0; background:rgba(0,0,0,.72);
+  display:none; align-items:center; justify-content:center;
+  z-index:9999; padding:20px;
+}
+#cartModal.show{display:flex}
+.cart-box{
+  width:min(560px,100%); max-height:80vh; overflow:auto;
+  background:#0d0b18; border:1px solid #7d22ff; border-radius:16px;
+  box-shadow:0 0 40px rgba(145,35,255,.35); padding:22px;
+}
+.cart-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px}
+.cart-head h2{margin:0}
+.close-cart{
+  background:transparent!important; border:0!important; color:#fff!important;
+  font-size:30px!important; padding:0 8px!important; cursor:pointer;
+}
+.cart-item{
+  display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center;
+  padding:13px 0; border-bottom:1px solid #27233a;
+}
+.cart-item small{display:block; color:#9d99ae; margin-top:4px}
+.cart-item strong{color:#b12cff; white-space:nowrap}
+.cart-item button{
+  width:auto!important; padding:7px 9px!important; background:#21182d!important;
+}
+.cart-total{font-size:21px; font-weight:800; margin:20px 0}
+.checkout-btn{
+  width:100%; border:0; border-radius:9px; padding:13px;
+  background:linear-gradient(90deg,#7c18ff,#b12cff); color:#fff;
+  font-weight:800; cursor:pointer;
+}
+.empty-cart{color:#aaa; text-align:center; padding:25px 0}
+</style>
+
+<style>
+#checkoutModal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:10000;padding:20px}
+#checkoutModal.show{display:flex}
+.checkout-box{width:min(560px,100%);max-height:80vh;overflow:auto;background:#0d0b18;border:1px solid #7d22ff;border-radius:16px;box-shadow:0 0 40px rgba(145,35,255,.35);padding:22px}
+.checkout-box label{display:block;margin:14px 0 6px}
+.checkout-box input{width:100%;box-sizing:border-box;background:#171322;color:#fff;border:1px solid #383047;border-radius:8px;padding:12px}
+
+.orders-link,.cart-link{background:transparent;border:0;color:#ddd;cursor:pointer;font:inherit;padding:7px 8px;border-radius:8px}.orders-link:hover,.cart-link:hover{background:#171322;color:#fff}.account{display:flex;align-items:center;gap:4px}
+#ordersModal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:10001;padding:20px}#ordersModal.show{display:flex}.orders-box{width:min(700px,100%);max-height:80vh;overflow:auto;background:#0d0b18;border:1px solid #7d22ff;border-radius:16px;box-shadow:0 0 40px rgba(145,35,255,.35);padding:22px}.orders-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.orders-head h2{margin:0}.order-card{border:1px solid #29243a;background:#12101d;border-radius:12px;padding:15px;margin:12px 0}.order-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.order-status{color:#b12cff;font-weight:800}.order-card small{color:#9d99ae}.order-games{margin:10px 0 0;padding-left:18px;color:#ddd}.empty-orders{text-align:center;color:#aaa;padding:30px 0}
+</style><style>
+#detailsModal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:10002;padding:20px}
+#detailsModal.show{display:flex}
+.details-box{position:relative;width:min(850px,100%);max-height:88vh;overflow:auto;background:#0d0b18;border:1px solid #7d22ff;border-radius:18px;box-shadow:0 0 50px rgba(145,35,255,.35);padding:25px}
+.details-close{position:absolute;right:12px;top:8px;z-index:3}
+.details-content{display:grid;grid-template-columns:280px 1fr;gap:28px;align-items:center}
+.details-cover{height:390px;border-radius:12px;overflow:hidden;background:#111;border:1px solid #302741}
+.details-cover img{width:100%;height:100%;object-fit:cover}
+.details-info h2{font-size:32px;margin:10px 0}
+.details-platform{color:#b12cff;font-weight:800}
+.details-info p{color:#c8c4d3;line-height:1.5}
+.details-badge{display:inline-block;background:#8d1dff;padding:6px 10px;border-radius:6px;font-weight:800}
+.details-price{font-size:30px;color:#c04cff;font-weight:900;margin:22px 0}
+.details-info .checkout-btn{max-width:320px}
+.details-btn{width:calc(100% - 24px)!important;margin:0 12px 8px!important;background:#171322!important;border:1px solid #563071!important}
+@media(max-width:700px){.details-content{grid-template-columns:1fr}.details-cover{height:300px;width:220px;margin:auto}.details-info h2{font-size:25px}}
+</style>
+
+<style>
+#adminModal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:12000;padding:20px}
+#adminModal.show{display:flex}
+.admin-box{width:min(1000px,100%);max-height:90vh;overflow:auto;background:#0d0b18;border:1px solid #8d1dff;border-radius:18px;box-shadow:0 0 55px rgba(145,35,255,.38);padding:25px}
+.admin-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.admin-head h2{margin:0}.admin-note{color:#aaa;font-size:13px;line-height:1.5}
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.admin-card{background:#12101d;border:1px solid #29243a;border-radius:12px;padding:18px}.admin-card h3{margin-top:0}
+.admin-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.admin-form input,.admin-form select{background:#171322;color:#fff;border:1px solid #383047;border-radius:8px;padding:11px;box-sizing:border-box;width:100%}.admin-form .full{grid-column:1/-1}.admin-action{border:0;border-radius:8px;padding:11px;background:#7c18ff;color:#fff;font-weight:800;cursor:pointer}.admin-list{max-height:350px;overflow:auto}.admin-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border-bottom:1px solid #29243a;padding:10px 0}.admin-row small{display:block;color:#999;margin-top:3px}.admin-row button{background:#21182d;color:#fff;border:1px solid #563071;border-radius:7px;padding:7px;cursor:pointer}.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}.admin-stat{background:#171322;border:1px solid #302741;border-radius:10px;padding:12px}.admin-stat strong{display:block;font-size:22px;color:#c04cff}.admin-login{max-width:420px;margin:auto}.admin-login input{width:100%;box-sizing:border-box;background:#171322;color:#fff;border:1px solid #383047;border-radius:8px;padding:12px;margin:8px 0 12px}
+@media(max-width:700px){.admin-grid,.admin-form{grid-template-columns:1fr}.admin-stats{grid-template-columns:1fr}.admin-form .full{grid-column:auto}}
+</style><style>
+#loginModal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:11000;padding:20px}
+#loginModal.show{display:flex}
+.login-box{width:min(460px,100%);background:#0d0b18;border:1px solid #8d1dff;border-radius:18px;box-shadow:0 0 45px rgba(145,35,255,.35);padding:26px}
+.login-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.login-head h2{margin:0}.login-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}.login-tabs button{padding:11px;border:1px solid #39304b;background:#171322;color:#aaa;border-radius:8px;cursor:pointer;font-weight:700}.login-tabs button.active{background:#7c18ff;color:#fff;border-color:#a64cff}.login-box label{display:block;margin:12px 0 6px}.login-box input{width:100%;box-sizing:border-box;background:#171322;color:#fff;border:1px solid #383047;border-radius:8px;padding:12px}.login-note{font-size:12px;color:#9690a5;line-height:1.5;margin:14px 0}.login-action{width:100%;border:0;border-radius:9px;padding:13px;background:linear-gradient(90deg,#7c18ff,#b12cff);color:#fff;font-weight:800;cursor:pointer}.account-user{font-size:12px;color:#b12cff;margin-top:10px}.logout-btn{background:#21182d!important;border:1px solid #563071!important;color:#fff!important;width:100%;padding:10px;border-radius:8px;cursor:pointer;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="logo"><span>🎮</span> JHON <b>GAMES</b></div>
+    <div class="search"><input id="search" placeholder="Busque por jogos, DLCs ou categorias..."><button>⌕</button></div>
+    <div class="account"><button class="orders-link" onclick="openAdmin(event)">⚙️ Admin</button> <button class="orders-link" onclick="openLogin(event)">👤 <span id="accountLabel">Entrar</span></button> <button class="orders-link" onclick="openOrders(event)">📦 Meus pedidos</button> <button class="cart-link" onclick="openCart(event)">🛒 <strong id="cartCount">0</strong></button></div>
+  </div>
+  <div class="promo-bar">🔥 OFERTAS DA SEMANA <b>ATÉ 70% OFF</b> • ⚡ Entrega digital rápida</div>
+  <nav>
+    <a class="active">⌂ Início</a><a>🎮 Todos os Jogos</a><a>◉ PC (Steam)</a>
+    <a>▣ PlayStation</a><a>▣ Xbox</a><a>🎮 GTA</a><a>◇ DLCs</a><a>🔥 Ofertas</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-copy">
+      <small>JHON GAMES</small>
+      <h1>JOGOS BARATOS<br><em>DE VERDADE!</em></h1>
+      <p>As melhores ofertas em jogos para PC, PlayStation, Xbox e muito mais.</p>
+      <div class="benefits"><span>⚡ Entrega automática</span><span>🛡️ Compra segura</span><span>💳 Pix e cartão</span></div>
+      <button class="cta" onclick="document.querySelector('#destaques').scrollIntoView()">VER OFERTAS →</button>
+    </div>
+    <div class="hero-art">
+      <img src="referencia-jhon-games.png" alt="Referência visual Jhon Games">
+    </div>
+  </section>
+
+  <section class="categories">
+    <button type="button" data-category="todos">🎮<b>Todos</b><small>Ver todos</small></button>
+    <button type="button" data-category="acao">🔫<b>Ação</b><small>GTA / Red Dead</small></button>
+    <button type="button" data-category="corrida">🏎️<b>Corrida</b><small>Euro Truck</small></button>
+    <button type="button" data-category="terror">👻<b>Terror</b><small>Resident Evil</small></button>
+    <button type="button" data-category="luta">🥊<b>Luta</b><small>Mortal Kombat</small></button>
+  </section>
+
+  <section id="destaques" class="products-section">
+    <div class="section-title"><div><span class="eyebrow">SELEÇÃO JHON GAMES</span><h2>🔥 Jogos em Destaque</h2></div><button class="see-all" onclick="filterCategory('todos')">Ver catálogo →</button></div>
+    <div id="products" class="products"></div>
+  </section>
+
+  <section class="home-promo">
+    <div><span class="eyebrow">OFERTA ESPECIAL</span><h2>Seu próximo jogo está aqui.</h2><p>Confira títulos populares com preços promocionais e compre em poucos cliques.</p></div>
+    <button class="cta" onclick="document.querySelector('#destaques').scrollIntoView({behavior:'smooth'})">EXPLORAR JOGOS →</button>
+  </section>
+
+  <section class="mini-sections">
+    <div class="mini-block"><div class="section-title"><h2>🏆 Mais procurados</h2></div><div id="popularProducts" class="mini-products"></div></div>
+    <div class="mini-block"><div class="section-title"><h2>💜 Ofertas imperdíveis</h2></div><div id="offerProducts" class="mini-products"></div></div>
+  </section>
+
+  <section class="trust">
+    <div>🛡️ <b>100% SEGURO</b><small>Seus dados protegidos.</small></div>
+    <div>⚡ <b>ENTREGA RÁPIDA</b><small>Receba sua chave em minutos.</small></div>
+    <div>🎧 <b>SUPORTE ESPECIALIZADO</b><small>Estamos sempre online.</small></div>
+    <div>★ <b>QUALIDADE</b><small>Preço justo e atendimento.</small></div>
+  </section>
+</main>
+
+<section class="newsletter"><div><span class="eyebrow">NOVIDADES</span><h2>Receba ofertas da Jhon Games</h2><p>Cadastre seu e-mail para acompanhar promoções e lançamentos.</p></div><div class="newsletter-form"><input id="newsletterEmail" type="email" placeholder="seu@email.com"><button onclick="subscribeNewsletter()">QUERO RECEBER</button></div></section>
+<footer><div class="logo">🎮 JHON <b>GAMES</b></div><span>Sobre nós</span><span>Termos de uso</span><span>Privacidade</span><span>Fale conosco</span><small>© 2026 Jhon Games</small></footer>
+
+<div id="toast"></div>
+<script>
+let games = [
+  ["Grand Theft Auto V","Rockstar Launcher","R$ 59,90","70% OFF","gta","acao","https://steamcdn-a.akamaihd.net/steam/apps/271590/library_600x900.jpg"],
+  ["Red Dead Redemption","Rockstar Games","R$ 69,90","55% OFF","red","acao","https://steamcdn-a.akamaihd.net/steam/apps/2668510/library_600x900.jpg"],
+  ["Red Dead Redemption 2","Steam","R$ 74,90","70% OFF","red","acao","https://steamcdn-a.akamaihd.net/steam/apps/1174180/library_600x900.jpg"],
+  ["Euro Truck Simulator 2","Steam","R$ 24,90","65% OFF","forza","corrida","https://steamcdn-a.akamaihd.net/steam/apps/227300/library_600x900.jpg"],
+  ["Resident Evil 4","Steam","R$ 89,90","50% OFF","spider","terror","https://steamcdn-a.akamaihd.net/steam/apps/2050650/library_600x900.jpg"],
+  ["Mortal Kombat 1","Steam","R$ 79,90","60% OFF","fc","luta","https://steamcdn-a.akamaihd.net/steam/apps/1971870/library_600x900.jpg"],
+  ["Forza Horizon 5","Steam","R$ 99,90","55% OFF","forza","corrida","https://steamcdn-a.akamaihd.net/steam/apps/1551360/library_600x900.jpg"],
+  ["Cyberpunk 2077","Steam","R$ 89,90","45% OFF","gta","acao","https://steamcdn-a.akamaihd.net/steam/apps/1091500/library_600x900.jpg"],
+  ["Hogwarts Legacy","Steam","R$ 119,90","40% OFF","red","acao","https://steamcdn-a.akamaihd.net/steam/apps/990080/library_600x900.jpg"],
+  ["Resident Evil 2","Steam","R$ 59,90","50% OFF","spider","terror","https://steamcdn-a.akamaihd.net/steam/apps/883710/library_600x900.jpg"],
+  ["Need for Speed Heat","EA App","R$ 49,90","60% OFF","forza","corrida","https://steamcdn-a.akamaihd.net/steam/apps/1222680/library_600x900.jpg"],
+  ["Street Fighter 6","Steam","R$ 99,90","45% OFF","fc","luta","https://steamcdn-a.akamaihd.net/steam/apps/1364780/library_600x900.jpg"],
+  ["The Witcher 3: Wild Hunt","Steam","R$ 39,90","70% OFF","red","acao","https://steamcdn-a.akamaihd.net/steam/apps/292030/library_600x900.jpg"],
+  ["Assetto Corsa","Steam","R$ 29,90","65% OFF","forza","corrida","https://steamcdn-a.akamaihd.net/steam/apps/244210/library_600x900.jpg"]
+];
+
+try{
+  const savedGames=JSON.parse(localStorage.getItem("jhonGamesCatalog")||"null");
+  if(Array.isArray(savedGames) && savedGames.length) games=savedGames;
+}catch(e){}
+function saveCatalog(){localStorage.setItem("jhonGamesCatalog",JSON.stringify(games))}
+
+const products = document.getElementById("products");
+let cart = [];
+function miniCard(g){
+  const index=games.indexOf(g);
+  return `<article class="mini-card"><img src="${g[6]}" alt="Capa de ${g[0]}" loading="lazy"><div><small>${g[1]}</small><h3>${g[0]}</h3><strong>${g[2]}</strong><button onclick="openDetails(${index})">Ver jogo</button></div></article>`;
+}
+function renderHomeSections(){
+  const popular=[games[0],games[2],games[5],games[6]];
+  const offers=[games[3],games[9],games[10],games[12]];
+  document.getElementById('popularProducts').innerHTML=popular.map(miniCard).join('');
+  document.getElementById('offerProducts').innerHTML=offers.map(miniCard).join('');
+}
+function subscribeNewsletter(){
+  const input=document.getElementById('newsletterEmail');
+  if(!input.value || !input.value.includes('@')){showToast('Digite um e-mail válido.');return;}
+  showToast('Cadastro realizado! (modo demonstração)');
+  input.value='';
+}
+
+
+function moneyToNumber(value){
+  return Number(value.replace("R$ ","").replace(".","").replace(",","."));
+}
+
+function render(list=games){
+  products.innerHTML = list.map(g=>{
+    const index = games.indexOf(g);
+    return `
+    <article class="card">
+      <div class="cover ${g[4]}"><img src="${g[6]}" alt="Capa de ${g[0]}" loading="lazy" onerror="this.style.display='none'"><span>${g[3]}</span></div>
+      <h3>${g[0]}</h3><small>${g[1]}</small>
+      <div class="price">${g[2]}</div>
+      <button class="details-btn" onclick="openDetails(${index})">👁️ Ver detalhes</button><button onclick="addCart(${index})">🛒 Comprar</button>
+    </article>`;
+  }).join("");
+}
+
+function openDetails(index){
+  const g=games[index];
+  let modal=document.getElementById("detailsModal");
+  if(!modal){
+    modal=document.createElement("div");
+    modal.id="detailsModal";
+    modal.innerHTML=`<div class="details-box">
+      <button class="close-cart details-close" onclick="closeDetails()">×</button>
+      <div class="details-content">
+        <div class="details-cover"><img id="detailsImg" src="" alt=""></div>
+        <div class="details-info">
+          <span class="details-badge" id="detailsDiscount"></span>
+          <h2 id="detailsTitle"></h2>
+          <p class="details-platform" id="detailsPlatform"></p>
+          <p id="detailsDescription" class="details-description"></p>
+          <p>🎮 Jogo digital • Entrega automática após a confirmação do pedido.</p>
+          <p>🛡️ Compra segura e suporte ao cliente.</p>
+          <div class="details-price" id="detailsPrice"></div>
+          <button class="checkout-btn" id="detailsBuy">🛒 Comprar agora</button>
+        </div>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click",e=>{if(e.target===modal)closeDetails()});
+  }
+  document.getElementById("detailsImg").src=g[6];
+  document.getElementById("detailsImg").alt="Capa de "+g[0];
+  document.getElementById("detailsTitle").textContent=g[0];
+  document.getElementById("detailsPlatform").textContent="Plataforma: "+g[1];
+  document.getElementById("detailsDescription").textContent=g[7]||"";
+  document.getElementById("detailsDiscount").textContent=g[3];
+  document.getElementById("detailsPrice").textContent=g[2];
+  document.getElementById("detailsBuy").onclick=()=>{closeDetails();addCart(index)};
+  modal.classList.add("show");
+}
+function closeDetails(){const m=document.getElementById("detailsModal");if(m)m.classList.remove("show")}
+
+function addCart(index){
+  const game = games[index];
+  cart.push(game);
+  updateCartCount();
+  showToast(game[0] + " foi adicionado ao carrinho!");
+  openCart();
+}
+
+function updateCartCount(){
+  document.getElementById("cartCount").textContent = cart.length;
+}
+
+function showToast(message){
+  const t=document.getElementById("toast");
+  t.textContent=message;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),1800);
+}
+
+function openCart(){
+  let modal = document.getElementById("cartModal");
+  if(!modal){
+    modal = document.createElement("div");
+    modal.id = "cartModal";
+    modal.innerHTML = `
+      <div class="cart-box">
+        <div class="cart-head">
+          <h2>🛒 Seu carrinho</h2>
+          <button class="close-cart" onclick="closeCart()">×</button>
+        </div>
+        <div id="cartItems"></div>
+        <div class="cart-total" id="cartTotal"></div>
+        <button class="checkout-btn" onclick="checkout()">Continuar para pagamento</button>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", e => {
+      if(e.target === modal) closeCart();
+    });
+  }
+  renderCart();
+  modal.classList.add("show");
+}
+
+function closeCart(){
+  const modal = document.getElementById("cartModal");
+  if(modal) modal.classList.remove("show");
+}
+
+function renderCart(){
+  const items = document.getElementById("cartItems");
+  const total = document.getElementById("cartTotal");
+  if(!items) return;
+
+  if(cart.length === 0){
+    items.innerHTML = '<p class="empty-cart">Seu carrinho está vazio.</p>';
+    total.textContent = "Total: R$ 0,00";
+    return;
+  }
+
+  items.innerHTML = cart.map((g,i)=>`
+    <div class="cart-item">
+      <div>
+        <b>${g[0]}</b>
+        <small>${g[1]}</small>
+      </div>
+      <strong>${g[2]}</strong>
+      <button onclick="removeCart(${i})">🗑️</button>
+    </div>`).join("");
+
+  const sum = cart.reduce((acc,g)=>acc + moneyToNumber(g[2]),0);
+  total.textContent = "Total: R$ " + sum.toFixed(2).replace(".",",");
+}
+
+function removeCart(index){
+  cart.splice(index,1);
+  updateCartCount();
+  renderCart();
+}
+
+function checkout(){
+  if(location.protocol === "file:"){alert("Abra o Jhon Games pelo servidor usando o arquivo INICIAR_JHON_GAMES.bat. O Pix do Asaas precisa de um servidor seguro para funcionar.");return;}
+  if(cart.length === 0){
+    showToast("Seu carrinho está vazio.");
+    return;
+  }
+  closeCart();
+  let c=document.getElementById("checkoutModal");
+  if(!c){
+    c=document.createElement("div");
+    c.id="checkoutModal";
+    c.innerHTML=`<div class="checkout-box">
+      <div class="cart-head"><h2>Finalizar pedido</h2><button class="close-cart" onclick="closeCheckout()">×</button></div>
+      <p>Pix seguro via Asaas. O pagamento só será confirmado quando o Asaas informar que a cobrança foi recebida.</p>
+      <div id="checkoutSummary"></div>
+      <label>Nome</label><input id="testName" placeholder="Seu nome">
+      <label>E-mail</label><input id="testEmail" type="email" placeholder="seu@email.com">
+      <label>CPF ou CNPJ</label><input id="testCpfCnpj" inputmode="numeric" autocomplete="off" placeholder="Somente números">
+      <small style="display:block;color:#aaa;margin-top:6px">O Asaas exige CPF ou CNPJ para criar a cobrança Pix.</small>
+      <button class="checkout-btn" id="pixBtn" onclick="createPixOrder()">Gerar Pix</button>
+      <div id="pixArea" style="display:none;margin-top:18px"></div>
+    </div>`;
+    document.body.appendChild(c);
+  }
+  document.getElementById("checkoutSummary").innerHTML=cart.map(g=>`<div class="cart-item"><b>${g[0]}</b><strong>${g[2]}</strong></div>`).join("");
+  c.classList.add("show");
+}
+function closeCheckout(){document.getElementById("checkoutModal")?.classList.remove("show")}
+async function createPixOrder(){
+  const name=document.getElementById("testName").value.trim();
+  const email=document.getElementById("testEmail").value.trim();
+  const cpfCnpj=document.getElementById("testCpfCnpj").value.trim();
+  const document=cpfCnpj.replace(/\D/g,"");
+  if(!name || !email || !email.includes("@") || !document){alert("Preencha seu nome, um e-mail válido e seu CPF ou CNPJ."); return;}
+  if(document.length!==11 && document.length!==14){alert("Digite um CPF com 11 números ou CNPJ com 14 números."); return;}
+  if(!cart.length){alert("Seu carrinho está vazio."); return;}
+  const btn=document.getElementById("pixBtn");
+  const area=document.getElementById("pixArea");
+  btn.disabled=true; btn.textContent="Gerando Pix...";
+  try{
+    const response=await fetch("/api/create-pix",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name,email,cpfCnpj:document,items:cart.map(g=>({name:g[0],price:moneyToNumber(g[2])}))})
+    });
+    const data=await response.json();
+    if(!response.ok) throw new Error(data.error||"Não foi possível gerar o Pix.");
+    area.style.display="block";
+    area.innerHTML=`<div style="text-align:center;border:1px solid #39284d;border-radius:12px;padding:16px;background:#12101d">
+      <h3 style="margin-top:0">💜 Pague com Pix</h3>
+      <p>Pedido <b>#${data.orderId}</b> — Total <b>${data.total}</b></p>
+      <img src="data:image/png;base64,${data.encodedImage}" alt="QR Code Pix" style="width:240px;max-width:100%;background:#fff;padding:10px;border-radius:10px">
+      <p style="font-size:13px;color:#aaa">Abra o app do seu banco e escaneie o QR Code.</p>
+      <textarea id="pixPayload" readonly style="width:100%;box-sizing:border-box;min-height:80px;background:#171322;color:#fff;border:1px solid #383047;border-radius:8px;padding:10px">${data.payload}</textarea>
+      <button class="checkout-btn" style="margin-top:10px" onclick="copyPix()">📋 Copiar Pix Copia e Cola</button>
+      <div id="paymentStatus" style="margin-top:14px;color:#c04cff;font-weight:800">⏳ Aguardando pagamento...</div>
+    </div>`;
+    const orders=getOrders();
+    const total=cart.reduce((sum,g)=>sum+moneyToNumber(g[2]),0);
+    orders.unshift({id:data.orderId,name,email,items:JSON.parse(JSON.stringify(cart.map(g=>({name:g[0],price:g[2]})))),total:total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}),date:new Date().toLocaleString("pt-BR"),status:"AGUARDANDO PIX",paymentId:data.paymentId});
+    saveOrders(orders);
+    cart=[]; updateCartCount();
+    pollPayment(data.paymentId);
+  }catch(err){
+    alert(err.message);
+    btn.disabled=false; btn.textContent="Gerar Pix";
+  }
+}
+function copyPix(){
+  const el=document.getElementById("pixPayload");
+  if(!el)return;
+  navigator.clipboard?.writeText(el.value).then(()=>showToast("Pix copiado!"));
+}
+async function pollPayment(paymentId){
+  const status=document.getElementById("paymentStatus");
+  if(!status)return;
+  try{
+    const r=await fetch("/api/payment/"+encodeURIComponent(paymentId));
+    const d=await r.json();
+    if(d.status==="RECEIVED" || d.status==="CONFIRMED"){
+      status.textContent="✅ Pagamento confirmado!";
+      status.style.color="#35e07f";
+      savePaidOrder(paymentId);
+      return;
+    }
+    if(d.status==="OVERDUE" || d.status==="REFUNDED" || d.status==="DELETED"){
+      status.textContent="❌ Cobrança não está disponível para pagamento.";
+      status.style.color="#ff5b6e";
+      return;
+    }
+  }catch(e){}
+  setTimeout(()=>pollPayment(paymentId),5000);
+}
+function savePaidOrder(paymentId){
+  const orders=getOrders();
+  const existing=orders.find(o=>o.paymentId===paymentId);
+  if(existing){existing.status="PAGO";saveOrders(orders);}
+}
+
+
+
+function getOrders(){
+  try{return JSON.parse(localStorage.getItem("jhonGamesOrders")||"[]")}catch(e){return []}
+}
+function saveOrders(orders){localStorage.setItem("jhonGamesOrders",JSON.stringify(orders))}
+function openOrders(event){
+  if(event) event.stopPropagation();
+  let modal=document.getElementById("ordersModal");
+  if(!modal){
+    modal=document.createElement("div");
+    modal.id="ordersModal";
+    modal.innerHTML=`<div class="orders-box"><div class="orders-head"><h2>📦 Meus pedidos</h2><button class="close-cart" onclick="closeOrders()">×</button></div><div id="ordersList"></div></div>`;
+    document.body.appendChild(modal);
+  }
+  renderOrders(); modal.classList.add("show");
+}
+function closeOrders(){const m=document.getElementById("ordersModal");if(m)m.classList.remove("show")}
+function renderOrders(){
+  const list=document.getElementById("ordersList"); if(!list)return;
+  const orders=getOrders();
+  if(!orders.length){list.innerHTML='<div class="empty-orders">Você ainda não tem pedidos.<br>Quando fizer um pedido de teste, ele aparecerá aqui.</div>';return;}
+  list.innerHTML=orders.map(o=>`<div class="order-card"><div class="order-top"><strong>Pedido #${o.id}</strong><span class="order-status">${o.status}</span></div><small>${o.date} • ${o.name} • ${o.email}</small><ul class="order-games">${o.items.map(i=>`<li>${i.name} — ${i.price}</li>`).join("")}</ul><strong>Total: ${o.total}</strong></div>`).join("");
+}
+
+
+function getUser(){try{return JSON.parse(localStorage.getItem("jhonGamesUser")||"null")}catch(e){return null}}
+function saveUser(u){localStorage.setItem("jhonGamesUser",JSON.stringify(u))}
+function updateAccount(){const u=getUser();const el=document.getElementById("accountLabel");if(el)el.textContent=u?(u.name.split(" ")[0]):"Entrar"}
+function openLogin(event){if(event)event.stopPropagation();let m=document.getElementById("loginModal");if(!m){m=document.createElement("div");m.id="loginModal";document.body.appendChild(m)}renderLogin("login");m.classList.add("show")}
+function closeLogin(){document.getElementById("loginModal")?.classList.remove("show")}
+function renderLogin(mode){const m=document.getElementById("loginModal");if(!m)return;const u=getUser();if(u){m.innerHTML=`<div class="login-box"><div class="login-head"><h2>👤 Minha conta</h2><button class="close-cart" onclick="closeLogin()">×</button></div><p>Olá, <b>${u.name}</b>! Sua conta de teste está ativa.</p><p class="login-note">Esta versão é apenas para demonstração. Os dados ficam salvos neste navegador e não são enviados para um servidor.</p><button class="logout-btn" onclick="logoutUser()">Sair da conta</button></div>`;return}m.innerHTML=`<div class="login-box"><div class="login-head"><h2>👤 Conta Jhon Games</h2><button class="close-cart" onclick="closeLogin()">×</button></div><div class="login-tabs"><button class="${mode==='login'?'active':''}" onclick="renderLogin('login')">Entrar</button><button class="${mode==='register'?'active':''}" onclick="renderLogin('register')">Criar conta</button></div><div>${mode==='register'?'<label>Nome</label><input id="accountName" placeholder="Seu nome">':''}<label>E-mail</label><input id="accountEmail" type="email" placeholder="seu@email.com"><label>Senha</label><input id="accountPassword" type="password" placeholder="Sua senha"><p class="login-note">🧪 Modo de teste: não use uma senha real. O cadastro funciona somente neste navegador.</p><button class="login-action" onclick="${mode==='register'?'registerUser()':'loginUser()'}">${mode==='register'?'Criar minha conta':'Entrar'}</button></div></div>`}
+function registerUser(){const name=document.getElementById('accountName').value.trim(),email=document.getElementById('accountEmail').value.trim(),password=document.getElementById('accountPassword').value;if(!name||!email||!password){alert('Preencha nome, e-mail e senha.');return}saveUser({name,email,password});updateAccount();closeLogin();showToast('Conta criada com sucesso!');}
+function loginUser(){const email=document.getElementById('accountEmail').value.trim(),password=document.getElementById('accountPassword').value;const u=getUser();if(!u){alert('Nenhuma conta de teste cadastrada. Clique em “Criar conta”.');return}if(email!==u.email||password!==u.password){alert('E-mail ou senha incorretos.');return}updateAccount();closeLogin();showToast('Login realizado!')}
+function logoutUser(){localStorage.removeItem('jhonGamesUser');updateAccount();closeLogin();showToast('Você saiu da conta.')}
+updateAccount();
+
+function openAdmin(event){
+  if(event)event.stopPropagation();
+  let m=document.getElementById("adminModal");
+  if(!m){m=document.createElement("div");m.id="adminModal";document.body.appendChild(m);m.addEventListener("click",e=>{if(e.target===m)closeAdmin()})}
+  renderAdminLogin();m.classList.add("show");
+}
+function closeAdmin(){document.getElementById("adminModal")?.classList.remove("show")}
+function renderAdminLogin(){
+ const m=document.getElementById("adminModal");
+ m.innerHTML=`<div class="admin-box admin-login"><div class="admin-head"><h2>⚙️ Painel Administrativo</h2><button class="close-cart" onclick="closeAdmin()">×</button></div><p class="admin-note">Área de demonstração da Jhon Games. Para testar, use o código <b>JHON2026</b>.</p><label>Código de acesso</label><input id="adminCode" type="password" placeholder="Digite o código"><button class="admin-action" style="width:100%" onclick="checkAdmin()">Entrar no painel</button></div>`;
+}
+function checkAdmin(){if(document.getElementById("adminCode").value!=="JHON2026"){alert("Código incorreto.");return}renderAdminPanel()}
+function renderAdminPanel(){
+ adminImageData="";
+ const m=document.getElementById("adminModal"), orders=getOrders();
+ const editingIndex = Number.isInteger(window.adminEditingIndex) ? window.adminEditingIndex : -1;
+ const editing = editingIndex >= 0 ? games[editingIndex] : null;
+ m.innerHTML=`<div class="admin-box"><div class="admin-head"><div><h2>⚙️ Painel Jhon Games</h2><p class="admin-note">Gerencie seu catálogo: adicione, <b>edite</b> ou apague jogos. Preço, foto, descrição, categoria, plataforma e desconto ficam salvos neste navegador.</p></div><button class="close-cart" onclick="closeAdmin()">×</button></div>
+ <div class="admin-stats"><div class="admin-stat"><strong>${games.length}</strong>Jogos no catálogo</div><div class="admin-stat"><strong>${orders.length}</strong>Pedidos</div><div class="admin-stat"><strong>${orders.filter(o=>o.status==='PAGO').length}</strong>Pagos</div></div>
+ <div class="admin-grid">
+ <div class="admin-card"><h3>${editing ? '✏️ Editar jogo' : '➕ Adicionar jogo'}</h3>
+ <div class="admin-form">
+ <input id="agName" placeholder="Nome do jogo" value="${editing?escAdmin(editing[0]):''}">
+ <input id="agPlatform" placeholder="Plataforma" value="${editing?escAdmin(editing[1]):''}">
+ <input id="agPrice" placeholder="Preço (ex.: R$ 49,90)" value="${editing?escAdmin(editing[2]):''}">
+ <input id="agDiscount" placeholder="Desconto (ex.: 50% OFF)" value="${editing?escAdmin(editing[3]):''}">
+ <select id="agCategory"><option value="acao">Ação</option><option value="corrida">Corrida</option><option value="terror">Terror</option><option value="luta">Luta</option><option value="esportes">Esportes / Futebol</option><option value="rpg">RPG</option><option value="aventura">Aventura</option><option value="estrategia">Estratégia</option></select>
+ <input id="agSlug" placeholder="Classe visual (ex.: gta)" value="${editing?escAdmin(editing[4]):'gta'}">
+ <label class="full" style="font-size:12px;color:#aaa;margin-top:4px">🖼️ Foto do jogo</label><input id="agImage" class="full" placeholder="Cole a URL da capa (opcional)" value="${editing?escAdmin(editing[6]||''):''}"><label class="full" style="font-size:12px;color:#aaa">📁 Ou escolha uma imagem do seu PC</label><input id="agImageFile" class="full" type="file" accept="image/*" onchange="previewAdminImage(this)"><div id="agImagePreview" class="full" style="display:${editing&&editing[6]?'block':'none'};margin-top:4px"><img src="${editing?escAdmin(editing[6]||''):''}" style="max-width:180px;max-height:220px;border-radius:10px;border:1px solid #383047"></div>
+ <label class="full" style="font-size:12px;color:#aaa;margin-top:4px">📝 Descrição</label><input id="agDescription" class="full" placeholder="Descrição curta do jogo" value="${editing?escAdmin(editing[7]||''):''}">
+ <button class="admin-action full" onclick="${editing?'updateAdminGame()':'addAdminGame()'}">${editing?'Salvar alterações':'Adicionar ao catálogo'}</button>
+ ${editing?'<button class="admin-action full" style="background:#21182d;border:1px solid #563071" onclick="cancelAdminEdit()">Cancelar edição</button>':''}
+ </div></div>
+ <div class="admin-card"><h3>🎮 Produtos</h3><div class="admin-list">${games.map((g,i)=>`<div class="admin-row"><div><b>${escAdmin(g[0])}</b><small>${escAdmin(g[1])} • ${escAdmin(g[2])} • ${escAdmin(g[5])}</small></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button title="Editar jogo" onclick="editAdminGame(${i})">✏️ Editar</button><button title="Apagar jogo" onclick="deleteAdminGame(${i})">🗑️ Apagar</button></div></div>`).join('')||'<p class="admin-note">Nenhum produto.</p>'}</div></div></div>
+ <div class="admin-card" style="margin-top:18px"><h3>📦 Pedidos recentes</h3><div class="admin-list">${orders.slice(0,10).map(o=>`<div class="admin-row"><div><b>#${escAdmin(o.id)} — ${escAdmin(o.name)}</b><small>${escAdmin(o.email)} • ${escAdmin(o.date)} • ${escAdmin(o.total)}</small></div><span class="order-status">${escAdmin(o.status)}</span></div>`).join('')||'<p class="admin-note">Nenhum pedido ainda.</p>'}</div></div>
+ </div>`;
+ if(editing) document.getElementById('agCategory').value=editing[5]||'acao';
+}
+function escAdmin(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+let adminImageData="";
+function previewAdminImage(input){
+ const file=input.files&&input.files[0]; if(!file)return;
+ if(file.size>10*1024*1024){alert("A imagem pode ter até 10 MB.");input.value="";return;}
+ const reader=new FileReader();
+ reader.onload=()=>{
+   const img=new Image();
+   img.onload=()=>{
+     const maxW=900,maxH=1200; let w=img.width,h=img.height; const scale=Math.min(1,maxW/w,maxH/h); w=Math.max(1,Math.round(w*scale)); h=Math.max(1,Math.round(h*scale));
+     const c=document.createElement("canvas"); c.width=w;c.height=h; const ctx=c.getContext("2d"); ctx.drawImage(img,0,0,w,h);
+     let quality=.72, data=c.toDataURL("image/jpeg",quality);
+     while(data.length>700000 && quality>.45){quality-=.05;data=c.toDataURL("image/jpeg",quality);}
+     adminImageData=data;
+     const p=document.getElementById("agImagePreview"); if(p){p.style.display="block";p.innerHTML='<img src="'+data+'" style="max-width:180px;max-height:220px;border-radius:10px;border:1px solid #383047">';}
+     const url=document.getElementById("agImage"); if(url)url.value="";
+   };
+   img.onerror=()=>alert("Não consegui abrir essa imagem. Escolha outra."); img.src=reader.result;
+ };
+ reader.readAsDataURL(file);
+}
+
+async function uploadAdminImage(){
+ if(!adminImageData) return document.getElementById('agImage')?.value.trim()||'';
+ const r=await fetch('/api/upload-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:adminImageData})});
+ const d=await r.json().catch(()=>({}));
+ if(!r.ok||!d.url) throw new Error(d.error||'Não foi possível salvar a capa.');
+ return d.url;
+}
+
+async function addAdminGame(){
+ const name=document.getElementById('agName').value.trim(),platform=document.getElementById('agPlatform').value.trim(),price=document.getElementById('agPrice').value.trim(),discount=document.getElementById('agDiscount').value.trim(),cat=document.getElementById('agCategory').value,slug=document.getElementById('agSlug').value.trim()||'gta',description=document.getElementById('agDescription').value.trim();
+ if(!name||!platform||!price){alert('Preencha nome, plataforma e preço.');return}
+ try{
+  const image=await uploadAdminImage();
+  games.push([name,platform,price,discount||'NOVIDADE',slug,cat,image,description]);
+  saveCatalog(); window.adminEditingIndex=-1; render(games); renderHomeSections(); filterCategory(currentCategory); renderAdminPanel(); showToast('Produto adicionado!');
+ }catch(e){alert(e.message||'Não foi possível salvar a capa.');}
+}
+
+function editAdminGame(index){window.adminEditingIndex=index;renderAdminPanel()}
+function cancelAdminEdit(){window.adminEditingIndex=-1;renderAdminPanel()}
+async function updateAdminGame(){
+ const i=window.adminEditingIndex;
+ if(!Number.isInteger(i)||!games[i]){renderAdminPanel();return}
+ const name=document.getElementById('agName').value.trim(),platform=document.getElementById('agPlatform').value.trim(),price=document.getElementById('agPrice').value.trim(),discount=document.getElementById('agDiscount').value.trim(),cat=document.getElementById('agCategory').value,slug=document.getElementById('agSlug').value.trim()||'gta',description=document.getElementById('agDescription').value.trim();
+ if(!name||!platform||!price){alert('Preencha nome, plataforma e preço.');return}
+ const oldGame=games[i];
+ try{
+  const image=await uploadAdminImage();
+  games[i]=[name,platform,price,discount||'NOVIDADE',slug,cat,image,description];
+  saveCatalog(); window.adminEditingIndex=-1; render(games); renderHomeSections(); filterCategory(currentCategory); renderAdminPanel(); showToast('Produto atualizado!');
+ }catch(e){games[i]=oldGame;alert(e.message||'Não foi possível salvar a capa.');}
+}
+function deleteAdminGame(index){if(!confirm('Remover '+games[index][0]+' do catálogo?'))return;games.splice(index,1);saveCatalog();window.adminEditingIndex=-1;render(games);renderHomeSections();filterCategory(currentCategory);renderAdminPanel();}
+
+let currentCategory = "todos";
+function filterCategory(category){
+  currentCategory = category;
+  const q = document.getElementById("search").value.toLowerCase().trim();
+  let list = games.slice();
+  if(category !== "todos") list = list.filter(g => String(g[5]).toLowerCase() === category);
+  if(q) list = list.filter(g => g[0].toLowerCase().includes(q) || g[1].toLowerCase().includes(q) || String(g[5]).toLowerCase().includes(q));
+  render(list);
+  document.querySelectorAll(".categories button").forEach(btn => btn.classList.toggle("active", btn.dataset.category === category));
+}
+document.querySelectorAll(".categories button").forEach(btn => {
+  btn.addEventListener("click", () => filterCategory(btn.dataset.category));
+});
+document.getElementById("search").addEventListener("input", () => filterCategory(currentCategory));
+
+filterCategory("todos");
+renderHomeSections();
+</script>
+</body>
+</html>

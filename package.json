@@ -1,0 +1,9 @@
+{
+  "name": "jhon-games-asaas-pix",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Jhon Games com checkout Pix via Asaas",
+  "main": "server.js",
+  "scripts": {"start": "node server.js"},
+  "dependencies": {"dotenv": "^16.4.7", "express": "^4.21.2"}
+}

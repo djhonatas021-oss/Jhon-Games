@@ -1,0 +1,30 @@
+JHON GAMES — PIX ASAAS
+
+Esta versão usa um servidor Node.js para manter a chave do Asaas fora do navegador.
+O fluxo é: cliente informa nome/e-mail -> o servidor cria cliente e cobrança Pix -> mostra QR Code e Pix Copia e Cola -> o site consulta o status do pagamento.
+
+1) Instale o Node.js (versão LTS) no Windows.
+2) Abra INICIAR_JHON_GAMES.bat.
+3) Na primeira execução será criado o arquivo .env.
+4) Abra .env e coloque sua chave do Asaas em ASAAS_API_KEY=...
+5) Salve o arquivo.
+6) Execute INICIAR_JHON_GAMES.bat novamente.
+7) Abra http://localhost:3000 no navegador.
+
+SEGURANÇA:
+- Nunca coloque a chave do Asaas no index.html.
+- Nunca envie sua chave para outra pessoa.
+- O arquivo .env fica apenas no seu computador.
+
+IMPORTANTE:
+- O endereço localhost funciona para testar no seu computador.
+- Para vender para clientes pela internet e receber Webhooks do Asaas, o servidor precisa ficar hospedado em um endereço público com HTTPS.
+- O botão de pagamento desta versão é Pix real em produção quando você usar uma chave de API de produção do Asaas.
+- Antes de vender, cadastre uma chave Pix no Asaas e teste uma cobrança pequena.
+
+
+PAINEL DE PRODUTOS
+- Abra Admin e use o código de teste JHON2026.
+- Agora é possível adicionar, editar e excluir produtos.
+- Os produtos ficam salvos no navegador deste computador.
+- Para uma loja pública, depois vamos migrar o catálogo para o servidor/banco de dados.
