@@ -44,7 +44,20 @@ app.post('/api/upload-image',(req,res)=>{
     res.json({ok:true,url:'/capas/'+name});
   }catch(e){ console.error(e); res.status(500).json({error:'Não foi possível salvar a capa.'}); }
 });
-
+app.post('/api/catalog',(req,res)=>{
+  try{
+    const games=Array.isArray(req.body?.games)?req.body.games:[];
+    fs.writeFileSync(
+      path.join(__dirname,'catalogo.json'),
+      JSON.stringify(games,null,2),
+      'utf8'
+    );
+    res.json({ok:true});
+  }catch(e){
+    console.error(e);
+    res.status(500).json({error:'Não foi possível salvar o catálogo.'});
+  }
+});
 app.post('/api/create-pix', async (req,res)=>{
   try{
     if(!API_KEY || API_KEY.includes('COLE_SUA_CHAVE')) return res.status(500).json({error:'A chave do Asaas ainda não foi configurada no arquivo .env.'});
