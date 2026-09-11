@@ -20,7 +20,17 @@ function authHeaders(){
 function brl(v){return Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 
 app.get('/api/health',(req,res)=>res.json({ok:true, asaasConfigured:Boolean(API_KEY && !API_KEY.includes('COLE_SUA_CHAVE'))}));
-
+app.get('/api/catalog',(req,res)=>{
+  try{
+    const saved=fs.existsSync(path.join(__dirname,'catalogo.json'))
+      ? JSON.parse(fs.readFileSync(path.join(__dirname,'catalogo.json'),'utf8'))
+      : [];
+    res.json({games:saved});
+  }catch(e){
+    console.error(e);
+    res.status(500).json({error:'Não foi possível carregar o catálogo.'});
+  }
+});
 app.post('/api/upload-image',(req,res)=>{
   try{
     const data=String(req.body?.data||'');
