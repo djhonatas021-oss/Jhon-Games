@@ -20,17 +20,46 @@ function authHeaders(){
 function brl(v){return Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 
 app.get('/api/health',(req,res)=>res.json({ok:true, asaasConfigured:Boolean(API_KEY && !API_KEY.includes('COLE_SUA_CHAVE'))}));
-app.get('/api/catalog',(req,res)=>{
+app.get('/api/catalog', async (req,res)=>{
   try{
-    const saved=fs.existsSync(path.join(__dirname,'catalogo.json'))
-      ? JSON.parse(fs.readFileSync(path.join(__dirname,'catalogo.json'),'utf8'))
-      : [];
-    res.json({games:saved});
+    const token = process.env.GITHUB_TOKEN;
+    const owner = 'djhonatas021-oss';
+    const repo = 'Jhon-Games';
+    const branch = 'main';
+    const file = 'catalogo.json';
+
+    if(!token){
+      return res.json({games:[]});
+    }
+
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${file}?ref=${branch}`;
+
+    const response = await fetch(url,{
+      headers:{
+        'Authorization':`Bearer ${token}`,
+        'Accept':'application/vnd.github+json'
+      }
+    });
+
+    if(response.status === 404){
+      return res.json({games:[]});
+    }
+
+    if(!response.ok){
+      throw new Error(`GitHub respondeu ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = Buffer.from(data.content.replace(/\n/g,''),'base64').toString('utf8');
+    const games = JSON.parse(content);
+
+    res.json({games});
   }catch(e){
     console.error(e);
     res.status(500).json({error:'Não foi possível carregar o catálogo.'});
   }
 });
+
 app.post('/api/upload-image',(req,res)=>{
   try{
     const data=String(req.body?.data||'');
@@ -44,18 +73,72 @@ app.post('/api/upload-image',(req,res)=>{
     res.json({ok:true,url:'/capas/'+name});
   }catch(e){ console.error(e); res.status(500).json({error:'Não foi possível salvar a capa.'}); }
 });
-app.post('/api/catalog',(req,res)=>{
+app.post('/api/catalog', async (req,res)=>{
   try{
-    const games=Array.isArray(req.body?.games)?req.body.games:[];
-    fs.writeFileSync(
-      path.join(__dirname,'catalogo.json'),
-      JSON.stringify(games,null,2),
-      'utf8'
-    );
+    const token = process.env.GITHUB_TOKEN;
+    const owner = 'djhonatas021-oss';
+    const repo = 'Jhon-Games';
+    const branch = 'main';
+    const file = 'catalogo.json';
+
+    if(!token){
+      return res.status(500).json({
+        error:'GitHub não está configurado no servidor.'
+      });
+    }
+
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${file}`;
+
+    const headers = {
+      'Authorization':`Bearer ${token}`,
+      'Accept':'application/vnd.github+json',
+      'X-GitHub-Api-Version':'2022-11-28'
+    };
+
+    let sha;
+
+    const current = await fetch(`${url}?ref=${branch}`,{headers});
+
+    if(current.ok){
+      const data = await current.json();
+      sha = data.sha;
+    }else if(current.status !== 404){
+      throw new Error(`GitHub respondeu ${current.status}`);
+    }
+
+    const games = Array.isArray(req.body?.games) ? req.body.games : [];
+
+    const body = {
+      message:'Atualiza catálogo Jhon Games',
+      content:Buffer
+        .from(JSON.stringify(games,null,2),'utf8')
+        .toString('base64'),
+      branch
+    };
+
+    if(sha) body.sha = sha;
+
+    const response = await fetch(url,{
+      method:'PUT',
+      headers:{
+        ...headers,
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify(body)
+    });
+
+    if(!response.ok){
+      const errorText = await response.text();
+      throw new Error(`GitHub respondeu ${response.status}: ${errorText}`);
+    }
+
     res.json({ok:true});
+
   }catch(e){
     console.error(e);
-    res.status(500).json({error:'Não foi possível salvar o catálogo.'});
+    res.status(500).json({
+      error:'Não foi possível salvar o catálogo no GitHub.'
+    });
   }
 });
 app.post('/api/create-pix', async (req,res)=>{
