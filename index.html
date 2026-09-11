@@ -169,7 +169,24 @@ try{
   const savedGames=JSON.parse(localStorage.getItem("jhonGamesCatalog")||"null");
   if(Array.isArray(savedGames) && savedGames.length) games=savedGames;
 }catch(e){}
-function saveCatalog(){localStorage.setItem("jhonGamesCatalog",JSON.stringify(games))}
+async function saveCatalog(){
+  try{
+    const response = await fetch('/api/catalog',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({games})
+    });
+
+    if(!response.ok){
+      throw new Error('Não foi possível salvar o catálogo online.');
+    }
+
+    localStorage.setItem("jhonGamesCatalog",JSON.stringify(games));
+  }catch(e){
+    console.error(e);
+    alert('Erro ao salvar o catálogo online.');
+  }
+}
 
 const products = document.getElementById("products");
 let cart = [];
