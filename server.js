@@ -341,7 +341,11 @@ app.get('/api/payment/:id', async (req,res)=>{
 });
 
 app.post('/api/asaas-webhook',(req,res)=>{
-  console.log('Webhook Asaas recebido:',req.body?.event,req.body?.payment?.id);
+  const event=req.body?.event;
+  const payment=req.body?.payment;
+
+  console.log('Webhook Asaas recebido:',event,payment?.id);
+
   res.sendStatus(200);
 });
 
