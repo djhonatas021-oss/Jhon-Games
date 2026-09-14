@@ -257,7 +257,7 @@ app.get('/api/payment/:id', async (req,res)=>{
   }catch(e){res.status(500).json({error:'Erro ao consultar pagamento.'});}
 });
 
-app.post('/api/webhook/asaas',(req,res)=>{
+app.post('/api/asaas-webhook',(req,res)=>{
   console.log('Webhook Asaas recebido:',req.body?.event,req.body?.payment?.id);
   res.sendStatus(200);
 });
