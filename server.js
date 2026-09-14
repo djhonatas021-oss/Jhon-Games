@@ -310,6 +310,32 @@ const dueDate=new Date();
     const qr=await qrResponse.json();
     if(!qrResponse.ok) return res.status(qrResponse.status).json({error:qr.errors?.[0]?.description || 'A cobrança foi criada, mas o QR Code não pôde ser obtido.'});
 
+
+    const ordersFile=path.join(__dirname,'pedidos.json');
+
+let orders={};
+
+try{
+  if(fs.existsSync(ordersFile)){
+    orders=JSON.parse(fs.readFileSync(ordersFile,'utf8'));
+  }
+}catch(e){
+  orders={};
+}
+
+orders[orderId]={
+  orderId,
+  paymentId:payment.id,
+  name,
+  email,
+  cpfCnpj:document,
+  items:orderItems,
+  total:Number(total.toFixed(2)),
+  status:'AGUARDANDO_PAGAMENTO',
+  createdAt:new Date().toISOString()
+};
+
+fs.writeFileSync(ordersFile,JSON.stringify(orders,null,2));
     res.json({
   ok:true,
   orderId,
@@ -332,6 +358,7 @@ app.get('/api/payment/:id', async (req,res)=>{
     const r=await fetch(`${BASE_URL}/payments/${encodeURIComponent(req.params.id)}`,{headers:{'access_token':API_KEY}});
     const d=await r.json();
     if(!r.ok) return res.status(r.status).json({error:d.errors?.[0]?.description || 'Não foi possível consultar a cobrança.'});
+    
     res.json({
   id:d.id,
   status:d.status,
@@ -341,6 +368,13 @@ app.get('/api/payment/:id', async (req,res)=>{
 });
 
 app.post('/api/asaas-webhook',(req,res)=>{
+  const receivedToken=req.headers['asaas-access-token'];
+
+  if(!ASAAS_WEBHOOK_TOKEN || receivedToken!==ASAAS_WEBHOOK_TOKEN){
+    console.log('Webhook Asaas recusado: token inválido.');
+    return res.sendStatus(401);
+  }
+
   const event=req.body?.event;
   const payment=req.body?.payment;
 
