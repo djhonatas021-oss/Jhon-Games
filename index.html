@@ -566,32 +566,61 @@ async function addAdminGame(){
   saveCatalog(); window.adminEditingIndex=-1; render(games); renderHomeSections(); filterCategory(currentCategory); renderAdminPanel(); showToast('Produto adicionado!');
  }catch(e){alert(e.message||'Não foi possível salvar a capa.');}
  }
-  async function addKeysToStock(){
- const gameIndex=Number(document.getElementById('keyGame').value);
- const input=document.getElementById('keyInput').value.trim();
+async function addKeysToStock(){
+  const gameIndex = Number(document.getElementById('keyGame').value);
+  const input = document.getElementById('keyInput').value.trim();
 
- if(!Number.isInteger(gameIndex)||!games[gameIndex]){
-  alert('Selecione um jogo.');
-  return;
- }
+  if(!Number.isInteger(gameIndex) || !games[gameIndex]){
+    alert('Selecione um jogo.');
+    return;
+  }
 
- if(!input){
-  alert('Cole pelo menos uma key.');
-  return;
- }
+  if(!input){
+    alert('Cole pelo menos uma key.');
+    return;
+  }
 
- const keys=input.split(/\r?\n/).map(k=>k.trim()).filter(Boolean);
+  const keys = input
+    .split(/\r?\n/)
+    .map(k => k.trim())
+    .filter(Boolean);
 
- if(!keys.length){
-  alert('Nenhuma key válida encontrada.');
-  return;
- }
+  if(!keys.length){
+    alert('Nenhuma key válida encontrada.');
+    return;
+  }
 
- alert(`${keys.length} key(s) preparada(s) para o estoque do jogo "${games[gameIndex][0]}".`);
+  try{
+    const response = await fetch('/api/keys-stock', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        gameIndex,
+        keys
+      })
+    });
 
+    const data = await response.json();
 
- document.getElementById('keyInput').value='';
+    if(!response.ok || !data.ok){
+      throw new Error(data.error || 'Não foi possível salvar as keys.');
+    }
+
+    document.getElementById('keyInput').value = '';
+
+    alert(
+      `${data.added} key(s) adicionada(s) ao estoque de "${games[gameIndex][0]}".\n\n` +
+      `Estoque disponível: ${data.total}`
+    );
+
+  }catch(e){
+    alert(e.message || 'Erro ao salvar as keys.');
+  }
 }
+
+
 
 function editAdminGame(index){window.adminEditingIndex=index;renderAdminPanel()}
 function cancelAdminEdit(){window.adminEditingIndex=-1;renderAdminPanel()}
