@@ -373,11 +373,11 @@ async function createPixOrder(){
   const name=document.getElementById("testName").value.trim();
   const email=document.getElementById("testEmail").value.trim();
   const cpfCnpj=document.getElementById("testCpfCnpj").value.trim();
-  const document=cpfCnpj.replace(/\D/g,"");
-  if(!name || !email || !email.includes("@") || !document){alert("Preencha seu nome, um e-mail válido e seu CPF ou CNPJ."); return;}
-  if(document.length!==11 && document.length!==14){alert("Digite um CPF com 11 números ou CNPJ com 14 números."); return;}
+  const cpfCnpjClean=cpfCnpj.replace(/\D/g,"");
+  if(!name || !email || !email.includes("@") || !cpfCnpjClean){alert("Preencha seu nome, um e-mail válido e seu CPF ou CNPJ."); return;}
+  if(cpfCnpjClean.length!==11 && cpfCnpjClean.length!==14){alert("Digite um CPF com 11 números ou CNPJ com 14 números."); return;}
   if(!cart.length){alert("Seu carrinho está vazio."); return;}
-  const btn=document.getElementById("pixBtn");
+  body:JSON.stringify({name,email,cpfCnpj:cpfCnpjClean,items:cart.map(g=>({name:g[0],price:moneyToNumber(g[2])}))})
   const area=document.getElementById("pixArea");
   btn.disabled=true; btn.textContent="Gerando Pix...";
   try{
