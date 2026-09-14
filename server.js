@@ -304,7 +304,16 @@ const dueDate=new Date();
     const qr=await qrResponse.json();
     if(!qrResponse.ok) return res.status(qrResponse.status).json({error:qr.errors?.[0]?.description || 'A cobrança foi criada, mas o QR Code não pôde ser obtido.'});
 
-    res.json({ok:true,orderId,paymentId:payment.id,total:brl(total),encodedImage:qr.encodedImage,payload:qr.payload,expirationDate:qr.expirationDate});
+    res.json({
+  ok:true,
+  orderId,
+  paymentId:payment.id,
+  total:brl(total),
+  items:orderItems,
+  encodedImage:qr.encodedImage,
+  payload:qr.payload,
+  expirationDate:qr.expirationDate
+});
   }catch(e){
     console.error(e);
     res.status(500).json({error:'Erro de comunicação com o Asaas.'});
