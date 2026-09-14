@@ -35,7 +35,18 @@ function brl(v){return Number(v).toLocaleString('pt-BR',{style:'currency',curren
 app.get('/api/health',(req,res)=>res.json({ok:true, asaasConfigured:Boolean(API_KEY && !API_KEY.includes('COLE_SUA_CHAVE'))}));
 
 app.post('/api/asaas-webhook',(req,res)=>{
-  console.log('Webhook Asaas recebido:',req.body?.event,req.body?.payment?.id);
+  const receivedToken=req.headers['asaas-access-token'];
+
+  if(!ASAAS_WEBHOOK_TOKEN || receivedToken!==ASAAS_WEBHOOK_TOKEN){
+    console.log('Webhook Asaas recusado: token inválido.');
+    return res.sendStatus(401);
+  }
+
+  const event=req.body?.event;
+  const payment=req.body?.payment;
+
+  console.log('Webhook Asaas recebido:',event,payment?.id);
+
   res.sendStatus(200);
 });
 
