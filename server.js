@@ -13,7 +13,20 @@ fs.mkdirSync(capasDir, { recursive: true });
 const API_KEY = process.env.ASAAS_API_KEY;
 const BASE_URL = process.env.ASAAS_BASE_URL || 'https://api.asaas.com/v3';
 const PORT = Number(process.env.PORT || 3000);
+const KEYS_FILE = path.join(__dirname, 'estoque-keys.json');
 
+function loadKeysStock(){
+  try{
+    if(!fs.existsSync(KEYS_FILE)) return {};
+    return JSON.parse(fs.readFileSync(KEYS_FILE,'utf8'));
+  }catch(e){
+    return {};
+  }
+}
+
+function saveKeysStock(stock){
+  fs.writeFileSync(KEYS_FILE, JSON.stringify(stock,null,2));
+}
 function authHeaders(){
   return {'Content-Type':'application/json','access_token':API_KEY};
 }
