@@ -290,7 +290,11 @@ app.post('/api/create-pix', async (req,res)=>{
     if(!customerResponse.ok) return res.status(customerResponse.status).json({error:customer.errors?.[0]?.description || 'Não foi possível criar o cliente no Asaas.'});
 
     const orderId=String(Date.now()).slice(-8);
-    const dueDate=new Date();
+const orderItems=items.map(i=>({
+  name:i.name||i.title||'Jogo',
+  price:Number(i.price||0)
+}));
+const dueDate=new Date();
     dueDate.setDate(dueDate.getDate()+1);
     const paymentResponse=await fetch(`${BASE_URL}/payments`,{method:'POST',headers:authHeaders(),body:JSON.stringify({customer:customer.id,billingType:'PIX',value:Number(total.toFixed(2)),dueDate:dueDate.toISOString().slice(0,10),description:`Pedido Jhon Games #${orderId}`,externalReference:`JHON-${orderId}`})});
     const payment=await paymentResponse.json();
