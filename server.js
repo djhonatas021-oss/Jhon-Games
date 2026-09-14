@@ -33,8 +33,55 @@ function authHeaders(){
 function brl(v){return Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 
 app.get('/api/health',(req,res)=>res.json({ok:true, asaasConfigured:Boolean(API_KEY && !API_KEY.includes('COLE_SUA_CHAVE'))}));
+app.get('/api/keys-stock', (req,res)=>{
+  const stock=loadKeysStock();
+  const result={};
+
+  for(const gameIndex of Object.keys(stock)){
+    result[gameIndex]=Array.isArray(stock[gameIndex]) ? stock[gameIndex].length : 0;
+  }
+
+  res.json(result);
+});
+app.post('/api/keys-stock', (req,res)=>{
+  try{
+    const {gameIndex, keys}=req.body||{};
+
+    if(gameIndex===undefined || !Array.isArray(keys)){
+      return res.status(400).json({error:'Jogo ou keys inválidos.'});
+    }
+
+    const cleanKeys=keys
+      .map(k=>String(k).trim())
+      .filter(Boolean);
+
+    if(!cleanKeys.length){
+      return res.status(400).json({error:'Nenhuma key foi informada.'});
+    }
+
+    const stock=loadKeysStock();
+    const index=String(gameIndex);
+
+    if(!Array.isArray(stock[index])){
+      stock[index]=[];
+    }
+
+    stock[index].push(...cleanKeys);
+    saveKeysStock(stock);
+
+    res.json({
+      ok:true,
+      added:cleanKeys.length,
+      total:stock[index].length
+    });
+  }catch(e){
+    console.error('Erro ao salvar keys:',e);
+    res.status(500).json({error:'Não foi possível salvar o estoque.'});
+  }
+});
 app.get('/api/catalog', async (req,res)=>{
   try{
+   
     const token = process.env.GITHUB_TOKEN;
     const owner = 'djhonatas021-oss';
     const repo = 'Jhon-Games';
