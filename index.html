@@ -376,9 +376,11 @@ async function createPixOrder(){
   const cpfCnpjClean=cpfCnpj.replace(/\D/g,"");
   if(!name || !email || !email.includes("@") || !cpfCnpjClean){alert("Preencha seu nome, um e-mail válido e seu CPF ou CNPJ."); return;}
   if(cpfCnpjClean.length!==11 && cpfCnpjClean.length!==14){alert("Digite um CPF com 11 números ou CNPJ com 14 números."); return;}
-  if(!cart.length){alert("Seu carrinho está vazio."); return;}
-  body:JSON.stringify({name,email,cpfCnpj:cpfCnpjClean,items:cart.map(g=>({name:g[0],price:moneyToNumber(g[2])}))})
+   if(!cart.length){alert("Seu carrinho está vazio."); return;}
+
+  const btn=document.getElementById("pixBtn");
   const area=document.getElementById("pixArea");
+
   btn.disabled=true; btn.textContent="Gerando Pix...";
   try{
     const response=await fetch("/api/create-pix",{
