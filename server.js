@@ -27,6 +27,20 @@ function loadKeysStock(){
 function saveKeysStock(stock){
   fs.writeFileSync(KEYS_FILE, JSON.stringify(stock,null,2));
 }
+
+function takeKeyFromStock(gameIndex){
+  const stock=loadKeysStock();
+  const index=String(gameIndex);
+
+  if(!Array.isArray(stock[index]) || !stock[index].length){
+    return null;
+  }
+
+  const key=stock[index].shift();
+  saveKeysStock(stock);
+
+  return key;
+}
 function authHeaders(){
   return {'Content-Type':'application/json','access_token':API_KEY};
 }
@@ -308,6 +322,7 @@ app.post('/api/create-pix', async (req,res)=>{
 
     const orderId=String(Date.now()).slice(-8);
 const orderItems=items.map(i=>({
+  gameIndex:i.gameIndex,
   name:i.name||i.title||'Jogo',
   price:Number(i.price||0)
 }));
