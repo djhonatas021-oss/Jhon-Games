@@ -511,6 +511,17 @@ function renderAdminPanel(){
  <button class="admin-action full" onclick="${editing?'updateAdminGame()':'addAdminGame()'}">${editing?'Salvar alterações':'Adicionar ao catálogo'}</button>
  ${editing?'<button class="admin-action full" style="background:#21182d;border:1px solid #563071" onclick="cancelAdminEdit()">Cancelar edição</button>':''}
  </div></div>
+ <div class="admin-card" style="margin-bottom:18px">
+ <h3>🔑 Estoque de Keys</h3>
+ <p class="admin-note">Aqui vamos controlar as keys disponíveis para cada jogo.</p>
+ <div class="admin-form">
+  <select id="keyGame" class="full">
+   ${games.map((g,i)=>`<option value="${i}">${escAdmin(g[0])}</option>`).join('')||'<option value="">Nenhum jogo cadastrado</option>'}
+  </select>
+  <textarea id="keyInput" class="full" rows="5" placeholder="Cole as keys aqui, uma por linha"></textarea>
+  <button class="admin-action full" onclick="addKeysToStock()">➕ Adicionar Keys ao estoque</button>
+ </div>
+</div>
  <div class="admin-card"><h3>🎮 Produtos</h3><div class="admin-list">${games.map((g,i)=>`<div class="admin-row"><div><b>${escAdmin(g[0])}</b><small>${escAdmin(g[1])} • ${escAdmin(g[2])} • ${escAdmin(g[5])}</small></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button title="Editar jogo" onclick="editAdminGame(${i})">✏️ Editar</button><button title="Apagar jogo" onclick="deleteAdminGame(${i})">🗑️ Apagar</button></div></div>`).join('')||'<p class="admin-note">Nenhum produto.</p>'}</div></div></div>
  <div class="admin-card" style="margin-top:18px"><h3>📦 Pedidos recentes</h3><div class="admin-list">${orders.slice(0,10).map(o=>`<div class="admin-row"><div><b>#${escAdmin(o.id)} — ${escAdmin(o.name)}</b><small>${escAdmin(o.email)} • ${escAdmin(o.date)} • ${escAdmin(o.total)}</small></div><span class="order-status">${escAdmin(o.status)}</span></div>`).join('')||'<p class="admin-note">Nenhum pedido ainda.</p>'}</div></div>
  </div>`;
@@ -554,6 +565,32 @@ async function addAdminGame(){
   games.push([name,platform,price,discount||'NOVIDADE',slug,cat,image,description]);
   saveCatalog(); window.adminEditingIndex=-1; render(games); renderHomeSections(); filterCategory(currentCategory); renderAdminPanel(); showToast('Produto adicionado!');
  }catch(e){alert(e.message||'Não foi possível salvar a capa.');}
+ }
+  async function addKeysToStock(){
+ const gameIndex=Number(document.getElementById('keyGame').value);
+ const input=document.getElementById('keyInput').value.trim();
+
+ if(!Number.isInteger(gameIndex)||!games[gameIndex]){
+  alert('Selecione um jogo.');
+  return;
+ }
+
+ if(!input){
+  alert('Cole pelo menos uma key.');
+  return;
+ }
+
+ const keys=input.split(/\r?\n/).map(k=>k.trim()).filter(Boolean);
+
+ if(!keys.length){
+  alert('Nenhuma key válida encontrada.');
+  return;
+ }
+
+ alert(`${keys.length} key(s) preparada(s) para o estoque do jogo "${games[gameIndex][0]}".`);
+
+
+ document.getElementById('keyInput').value='';
 }
 
 function editAdminGame(index){window.adminEditingIndex=index;renderAdminPanel()}
