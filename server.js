@@ -59,6 +59,30 @@ app.get('/api/catalog', async (req,res)=>{
     res.status(500).json({error:'Não foi possível carregar o catálogo.'});
   }
 });
+app.post('/api/asaas-webhook', async (req,res)=>{
+  try{
+    const token = process.env.ASAAS_WEBHOOK_TOKEN;
+    const receivedToken = req.headers['asaas-access-token'];
+
+    if(token && receivedToken !== token){
+      return res.status(401).json({error:'Token inválido.'});
+    }
+
+    const event = req.body || {};
+
+    console.log('Webhook Asaas recebido:', event.event);
+
+    if(event.event === 'PAYMENT_RECEIVED' || event.event === 'PAYMENT_CONFIRMED'){
+      console.log('Pagamento confirmado/recebido:', event.payment?.id);
+    }
+
+    res.status(200).json({ok:true});
+  }catch(e){
+    console.error('Erro no webhook Asaas:', e);
+    res.status(500).json({error:'Erro no webhook.'});
+  }
+});
+
 
 app.post('/api/upload-image', async (req,res)=>{
   try{
