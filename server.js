@@ -60,18 +60,68 @@ app.get('/api/catalog', async (req,res)=>{
   }
 });
 
-app.post('/api/upload-image',(req,res)=>{
+app.post('/api/upload-image', async (req,res)=>{
   try{
-    const data=String(req.body?.data||'');
-    if(!data.startsWith('data:image/')) return res.status(400).json({error:'Imagem inválida.'});
-    const m=data.match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/);
-    if(!m) return res.status(400).json({error:'Formato de imagem não suportado.'});
-    const buf=Buffer.from(m[2],'base64');
-    if(!buf.length || buf.length>900000) return res.status(413).json({error:'A imagem ficou grande demais. Tente outra capa.'});
-    const name='capa_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
-    fs.writeFileSync(path.join(capasDir,name),buf);
-    res.json({ok:true,url:'/capas/'+name});
-  }catch(e){ console.error(e); res.status(500).json({error:'Não foi possível salvar a capa.'}); }
+    const token = process.env.GITHUB_TOKEN;
+
+    if(!token){
+      return res.status(500).json({error:'GitHub não está configurado.'});
+    }
+
+    const data = String(req.body?.data || '');
+
+    if(!data.startsWith('data:image/')){
+      return res.status(400).json({error:'Imagem inválida.'});
+    }
+
+    const match = data.match(/^data:image\/(?:jpeg|jpg|png|webp);base64,(.+)$/);
+
+    if(!match){
+      return res.status(400).json({error:'Formato de imagem não suportado.'});
+    }
+
+    const base64 = match[1];
+
+    if(Buffer.from(base64,'base64').length > 900000){
+      return res.status(413).json({error:'A imagem ficou grande demais.'});
+    }
+
+    const name = `capa_${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
+    const file = `capas/${name}`;
+
+    const url = `https://api.github.com/repos/djhonatas021-oss/Jhon-Games/contents/${file}`;
+
+    const response = await fetch(url,{
+      method:'PUT',
+      headers:{
+        'Authorization':`Bearer ${token}`,
+        'Accept':'application/vnd.github+json',
+        'X-GitHub-Api-Version':'2022-11-28',
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        message:`Adiciona capa ${name}`,
+        content:base64,
+        branch:'main'
+      })
+    });
+
+    if(!response.ok){
+      const errorText = await response.text();
+      throw new Error(`GitHub respondeu ${response.status}: ${errorText}`);
+    }
+
+    res.json({
+      ok:true,
+      url:`https://raw.githubusercontent.com/djhonatas021-oss/Jhon-Games/main/${file}`
+    });
+
+  }catch(e){
+    console.error(e);
+    res.status(500).json({
+      error:'Não foi possível salvar a capa no GitHub.'
+    });
+  }
 });
 app.post('/api/catalog', async (req,res)=>{
   try{
