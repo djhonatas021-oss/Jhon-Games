@@ -326,7 +326,11 @@ app.get('/api/payment/:id', async (req,res)=>{
     const r=await fetch(`${BASE_URL}/payments/${encodeURIComponent(req.params.id)}`,{headers:{'access_token':API_KEY}});
     const d=await r.json();
     if(!r.ok) return res.status(r.status).json({error:d.errors?.[0]?.description || 'Não foi possível consultar a cobrança.'});
-    res.json({id:d.id,status:d.status,value:d.value});
+    res.json({
+  id:d.id,
+  status:d.status,
+  value:d.value
+});
   }catch(e){res.status(500).json({error:'Erro ao consultar pagamento.'});}
 });
 
