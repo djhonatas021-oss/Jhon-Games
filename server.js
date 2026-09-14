@@ -33,6 +33,12 @@ function authHeaders(){
 function brl(v){return Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 
 app.get('/api/health',(req,res)=>res.json({ok:true, asaasConfigured:Boolean(API_KEY && !API_KEY.includes('COLE_SUA_CHAVE'))}));
+
+app.post('/api/asaas-webhook',(req,res)=>{
+  console.log('Webhook Asaas recebido:',req.body?.event,req.body?.payment?.id);
+  res.sendStatus(200);
+});
+
 app.get('/api/keys-stock', (req,res)=>{
   const stock=loadKeysStock();
   const result={};
