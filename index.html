@@ -93,9 +93,15 @@
   </div>
   <div class="promo-bar">🔥 OFERTAS DA SEMANA <b>ATÉ 70% OFF</b> • ⚡ Entrega digital rápida</div>
   <nav>
-    <a class="active">⌂ Início</a><a>🎮 Todos os Jogos</a><a>◉ PC (Steam)</a>
-    <a>▣ PlayStation</a><a>▣ Xbox</a><a>🎮 GTA</a><a>◇ DLCs</a><a>🔥 Ofertas</a>
-  </nav>
+  <a class="active" onclick="filterCategory('todos')">⌂ Início</a>
+  <a onclick="filterCategory('todos')">🎮 Todos os Jogos</a>
+  <a onclick="filterPlatform('PC')">◉ PC (Steam)</a>
+  <a onclick="filterPlatform('PlayStation')">▣ PlayStation</a>
+  <a onclick="filterPlatform('Xbox')">▣ Xbox</a>
+  <a onclick="filterCategory('gta')">🎮 GTA</a>
+  <a onclick="filterCategory('dlc')">◇ DLCs</a>
+  <a onclick="filterOffers()">🔥 Ofertas</a>
+</nav>
 </header>
 
 <main>
