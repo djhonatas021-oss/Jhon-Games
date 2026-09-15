@@ -645,6 +645,29 @@ async function updateAdminGame(){
 function deleteAdminGame(index){if(!confirm('Remover '+games[index][0]+' do catálogo?'))return;games.splice(index,1);saveCatalog();window.adminEditingIndex=-1;render(games);renderHomeSections();filterCategory(currentCategory);renderAdminPanel();}
 
 let currentCategory = "todos";
+  function filterPlatform(platform){
+  let list = games.slice();
+
+  if(platform === "PC"){
+    list = list.filter(g =>
+      ["Steam","EA App","Rockstar Launcher","Rockstar Games"].includes(g[1])
+    );
+  }else{
+    list = list.filter(g =>
+      String(g[1]).toLowerCase().includes(platform.toLowerCase())
+    );
+  }
+
+  render(list);
+}
+
+function filterOffers(){
+  let list = games.filter(g =>
+    String(g[3]).includes("% OFF")
+  );
+
+  render(list);
+}
 function filterCategory(category){
   currentCategory = category;
   const q = document.getElementById("search").value.toLowerCase().trim();
