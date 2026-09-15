@@ -11,6 +11,7 @@ const capasDir = path.join(__dirname, 'capas');
 fs.mkdirSync(capasDir, { recursive: true });
 
 const API_KEY = process.env.ASAAS_API_KEY;
+const ASAAS_WEBHOOK_TOKEN = process.env.ASAAS_WEBHOOK_TOKEN;
 const BASE_URL = process.env.ASAAS_BASE_URL || 'https://api.asaas.com/v3';
 const PORT = Number(process.env.PORT || 3000);
 const KEYS_FILE = path.join(__dirname, 'estoque-keys.json');
