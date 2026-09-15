@@ -61,8 +61,72 @@ app.post('/api/asaas-webhook',(req,res)=>{
 
   console.log('Webhook Asaas recebido:',event,payment?.id);
 
-  res.sendStatus(200);
+  if(event!=='PAYMENT_RECEIVED' && event!=='PAYMENT_CONFIRMED'){
+    return res.sendStatus(200);
+  }
+
+  if(!payment?.externalReference){
+    return res.sendStatus(200);
+  }
+
+  const orderId=payment.externalReference.replace('JHON-','');
+  const ordersFile=path.join(__dirname,'pedidos.json');
+
+  let orders={};
+
+  try{
+    if(fs.existsSync(ordersFile)){
+      orders=JSON.parse(fs.readFileSync(ordersFile,'utf8'));
+    }
+  }catch(e){
+    orders={};
+  }
+
+  const order=orders[orderId];
+
+  if(!order){
+    console.log('Pedido não encontrado:',orderId);
+    return res.sendStatus(200);
+  }
+
+  if(order.status==='ENTREGUE'){
+    return res.sendStatus(200);
+  }
+
+ console.log('Pagamento confirmado para o pedido:',orderId);
+
+for(const item of order.items){
+  const key=takeKeyFromStock(item.gameIndex);
+
+  if(!key){
+    console.log('Sem key disponível para:',item.name);
+    order.status='PAGO_SEM_ESTOQUE';
+    orders[orderId]=order;
+    fs.writeFileSync(ordersFile,JSON.stringify(orders,null,2));
+    return res.sendStatus(200);
+  }
+
+  if(!order.keys){
+    order.keys=[];
+  }
+
+  order.keys.push({
+    gameIndex:item.gameIndex,
+    name:item.name,
+    key:key
+  });
+}
+
+order.status='ENTREGUE';
+order.paidAt=new Date().toISOString();
+  orders[orderId]=order;
+fs.writeFileSync(ordersFile,JSON.stringify(orders,null,2));
+
+console.log('Key(s) liberada(s) para o pedido:',orderId);
+
+res.sendStatus(200);
 });
+
 
 app.get('/api/keys-stock', (req,res)=>{
   const stock=loadKeysStock();
@@ -150,28 +214,84 @@ app.get('/api/catalog', async (req,res)=>{
     res.status(500).json({error:'Não foi possível carregar o catálogo.'});
   }
 });
-app.post('/api/asaas-webhook', async (req,res)=>{
-  try{
-    const token = process.env.ASAAS_WEBHOOK_TOKEN;
-    const receivedToken = req.headers['asaas-access-token'];
+app.post('/api/asaas-webhook',(req,res)=>{
+  const receivedToken=req.headers['asaas-access-token'];
 
-    if(token && receivedToken !== token){
-      return res.status(401).json({error:'Token inválido.'});
-    }
-
-    const event = req.body || {};
-
-    console.log('Webhook Asaas recebido:', event.event);
-
-    if(event.event === 'PAYMENT_RECEIVED' || event.event === 'PAYMENT_CONFIRMED'){
-      console.log('Pagamento confirmado/recebido:', event.payment?.id);
-    }
-
-    res.status(200).json({ok:true});
-  }catch(e){
-    console.error('Erro no webhook Asaas:', e);
-    res.status(500).json({error:'Erro no webhook.'});
+  if(!ASAAS_WEBHOOK_TOKEN || receivedToken!==ASAAS_WEBHOOK_TOKEN){
+    console.log('Webhook Asaas recusado: token inválido.');
+    return res.sendStatus(401);
   }
+
+  const event=req.body?.event;
+  const payment=req.body?.payment;
+
+  console.log('Webhook Asaas recebido:',event,payment?.id);
+
+  if(event!=='PAYMENT_RECEIVED' && event!=='PAYMENT_CONFIRMED'){
+    return res.sendStatus(200);
+  }
+
+  if(!payment?.externalReference){
+    return res.sendStatus(200);
+  }
+
+  const orderId=payment.externalReference.replace('JHON-','');
+  const ordersFile=path.join(__dirname,'pedidos.json');
+
+  let orders={};
+
+  try{
+    if(fs.existsSync(ordersFile)){
+      orders=JSON.parse(fs.readFileSync(ordersFile,'utf8'));
+    }
+  }catch(e){
+    orders={};
+  }
+
+  const order=orders[orderId];
+
+  if(!order){
+    console.log('Pedido não encontrado:',orderId);
+    return res.sendStatus(200);
+  }
+
+  if(order.status==='ENTREGUE'){
+    return res.sendStatus(200);
+  }
+
+  console.log('Pagamento confirmado para o pedido:',orderId);
+
+  for(const item of order.items){
+    const key=takeKeyFromStock(item.gameIndex);
+
+    if(!key){
+      console.log('Sem key disponível para:',item.name);
+      order.status='PAGO_SEM_ESTOQUE';
+      orders[orderId]=order;
+      fs.writeFileSync(ordersFile,JSON.stringify(orders,null,2));
+      return res.sendStatus(200);
+    }
+
+    if(!order.keys){
+      order.keys=[];
+    }
+
+    order.keys.push({
+      gameIndex:item.gameIndex,
+      name:item.name,
+      key:key
+    });
+  }
+
+  order.status='ENTREGUE';
+  order.paidAt=new Date().toISOString();
+
+  orders[orderId]=order;
+  fs.writeFileSync(ordersFile,JSON.stringify(orders,null,2));
+
+  console.log('Key(s) liberada(s) para o pedido:',orderId);
+
+  res.sendStatus(200);
 });
 
 
