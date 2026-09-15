@@ -262,27 +262,32 @@ app.post('/api/asaas-webhook',(req,res)=>{
 
   console.log('Pagamento confirmado para o pedido:',orderId);
 
-  for(const item of order.items){
-    const key=takeKeyFromStock(item.gameIndex);
+  // Verifica primeiro se existe estoque para TODOS os jogos
+for(const item of order.items){
+  const stock=loadKeysStock();
+  const index=String(item.gameIndex);
 
-    if(!key){
-      console.log('Sem key disponível para:',item.name);
-      order.status='PAGO_SEM_ESTOQUE';
-      orders[orderId]=order;
-      fs.writeFileSync(ordersFile,JSON.stringify(orders,null,2));
-      return res.sendStatus(200);
-    }
-
-    if(!order.keys){
-      order.keys=[];
-    }
-
-    order.keys.push({
-      gameIndex:item.gameIndex,
-      name:item.name,
-      key:key
-    });
+  if(!Array.isArray(stock[index]) || !stock[index].length){
+    console.log('Sem key disponível para:',item.name);
+    order.status='PAGO_SEM_ESTOQUE';
+    orders[orderId]=order;
+    fs.writeFileSync(ordersFile,JSON.stringify(orders,null,2));
+    return res.sendStatus(200);
   }
+}
+
+// Só depois de confirmar que todos têm estoque, retira as keys
+order.keys=[];
+
+for(const item of order.items){
+  const key=takeKeyFromStock(item.gameIndex);
+
+  order.keys.push({
+    gameIndex:item.gameIndex,
+    name:item.name,
+    key:key
+  });
+}
 
   order.status='ENTREGUE';
   order.paidAt=new Date().toISOString();
