@@ -524,6 +524,7 @@ function renderAdminPanel(){
   <select id="keyGame" class="full">
    ${games.map((g,i)=>`<option value="${i}">${escAdmin(g[0])}</option>`).join('')||'<option value="">Nenhum jogo cadastrado</option>'}
   </select>
+  <div id="keyStockCount" class="full" style="color:#c04cff;font-weight:800;font-size:14px;">📦 Carregando estoque...</div>
   <textarea id="keyInput" class="full" rows="5" placeholder="Cole as keys aqui, uma por linha"></textarea>
   <button class="admin-action full" onclick="addKeysToStock()">➕ Adicionar Keys ao estoque</button>
  </div>
